@@ -1,0 +1,56 @@
+# There is a comment when we need
+debug=true
+kindOfPalletTemplate=1     #1:Tian 2:Chuan
+# -----Camera Parameter--------
+camera_shift_x_distance = 0.0
+camera_shift_y_distance = 0.0
+camera_shift_z_distance = 0.0
+
+camera_rotate_x_angle = 0.0
+camera_rotate_y_angle = 0.0
+camera_rotate_z_angle = 0.0
+
+# -----Safe Zone Detect--------
+pallet_length = 1.1;
+pallet_weight = 1.1;
+pallet_height = 0.2;
+
+safezone_min_x=1.0        # x for front and back
+safezone_max_x=3.0
+safezone_min_y=-0.65      # y for left and right  
+safezone_max_y=0.65  
+safezone_min_z=-0.14       # z for up and down
+safezone_max_z=0.06
+safezone_show=true      # color green
+safezone_show_density=0.001 # unit: m
+safezone_pointCountForObjectExist=5;   #5
+
+# -----Pallet Detect--------
+# Region Of Interest
+pallet_roi_min_x=1.0        # x for front and back
+pallet_roi_max_x=2.0
+pallet_roi_min_y=-0.65       # y for left and right  
+pallet_roi_max_y=0.65  
+pallet_roi_min_z=-0.14       # z for up and down
+pallet_roi_max_z= 0.06
+pallet_roi_show=true   # color blue
+pallet_roi_show_density=0.001 
+
+# -----Ground Detect--------
+ground_roi_min_x=0.5        # x for front and back
+ground_roi_max_x=1.0
+ground_roi_min_y=-0.2       # y for left and right  
+ground_roi_max_y=0.2  
+ground_roi_min_z=-0.4       # z for up and down
+ground_roi_max_z=-0.1
+ground_roi_show=true   # color red
+ground_roi_show_density=0.001
+ground_pointCountForGroundExist = 1000   #if point count more then this, the ground is ground_pointCountForGroundExist 
+ground_increaseCameraHeight = 0.15  # the camera to detect pallet on the floor will higher than other height  
+
+
+
+ipAddress=10.10.90.125 
+port=3001 
+username=mark 
+password=2d2df5a 

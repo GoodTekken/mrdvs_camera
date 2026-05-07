@@ -1,0 +1,18 @@
+1,add basler_ros
+----|
+    |_basler_ros.h
+    |_basler_ros.cpp
+
+1,add basler_ParametrizeFromFile
+----|
+    |_basler_ParametrizeFromFile.h
+    |_basler_ParametrizeFromFile.cpp
+
+
+
+Issue: Failed to load the producer file ProducerBlaze.cti: /opt/pylon/lib/pylonCXP/bin/ProducerBlaze.cti: cannot open shared object file: No such file or directory
+Solve: "Copy the file_"ProducerBlaze.cti" to  /opt/pylon/lib/pylonCXP/bin/~"
+jt@JT:~/Desktop/basler_camera/build-QT_TCP$ sudo find / -name ProducerBlaze.cti
+[sudo] password for jt:
+/opt/Basler_blaze_old/lib/gentlproducer/gtl/ProducerBlaze.cti
+/opt/Basler_blaze/lib/gentlproducer/gtl/ProducerBlaze.cti

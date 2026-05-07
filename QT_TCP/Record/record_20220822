@@ -1,0 +1,15 @@
+1,change the class name from PalletRequestClass to pdsPalletRequestClass.
+2,add pdsPalletResponseClass to PDS_protocol directory
+----|
+    |_...
+    |_pdsPalletResponseClass.h
+    |_pdsPalletResponseClass.cpp
+
+3,add pdsPalletCoordinateClass to PDS_protocol directory
+----|
+    |_...
+    |pdsPalletCoordinateClass.h
+    |pdsPalletCoordinateClass.cpp
+
+
+4,add "getPalletResponse_success" to pdsPalletResponseClass, seal with "pdsPalletCoordinateClass"

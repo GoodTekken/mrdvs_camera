@@ -1,0 +1,18 @@
+ mkdir build
+ cd buil 
+ camke ..
+ make -j8
+-----------
+tar -zxvf 'xxxxx.tar.gz'
+
+
+roslaunch basler_blaze basler_blaze.launch
+
+catkin_make -DCATKIN_WHITELIST_PACKAGES="Rgbd_ros_main"
+
+//StartUp
+gnome-session-properties
+
+//update .bashrc
+source ~/.bashrc
+
