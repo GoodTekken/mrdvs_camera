@@ -3,6 +3,7 @@
 #include <pcl/common/time.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/visualization/cloud_viewer.h>
+#include <pcl/filters/extract_indices.h>
 //#include <pcl_conversions/pcl_conversions.h>
 
 #include <pcl/point_types.h>
@@ -106,7 +107,7 @@ int safeZoneMethod()
     BoxFilter(rotation_cloudRGB,*filterBoxInside_cloudRGB,min_pt,max_pt,false); // true: ouside   false:inside
 
     //2.Color Set
-    colorPointSet(filterBoxInside_cloudRGB, 255, 0, 0);
+    //colorPointSet(filterBoxInside_cloudRGB, 255, 0, 0);
 
     //3.Show message
     g_existpoint = filterBoxInside_cloudRGB->size();
@@ -317,7 +318,7 @@ int palletDetectMethod_Tian()
     cout << "After dilate: cloud_boundary_after_filter:" <<cloud_boundary_after_filter->size()<< endl;
 
     colorPointSet(cloud_boundary_after_filter,100,100,100);
-    MergeCloud(cloud_boundary_after_filter,*totalRGB);
+    //MergeCloud(cloud_boundary_after_filter,*totalRGB);
     //=================add:dilate End=================//
 
 //    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree_seg(new pcl::search::KdTree<pcl::PointXYZRGB>());
@@ -366,7 +367,7 @@ int palletDetectMethod_Tian()
                     {
                         rightcentroid = centroid;
                     }
-                    MergeCloud(kdfillCloudRGB,*totalRGB);
+                    //MergeCloud(kdfillCloudRGB,*totalRGB);
                 }
                 //MergeCloud(boundPoints_filter_seg,*totalRGB);
                 hole_count++;
@@ -442,6 +443,57 @@ int palletDetectMethod_All()
     Eigen::Vector4f min_pt2(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z+0.03 -increaseCameraHeight,1.0);
     Eigen::Vector4f max_pt2(basler.pallet_roi_max_x,basler.pallet_roi_max_y,basler.pallet_roi_max_z-0.03 -increaseCameraHeight,1.0);
     BoxFilter(rotation_cloudRGB,*pallet_boxFilter_reduce_cloudRGB,min_pt2,max_pt2,false); // true: ouside   false:inside
+
+
+    //3
+    pcl::NormalEstimation<pcl::PointXYZRGB,pcl::Normal> ne;
+    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
+    ne.setSearchMethod(tree);
+    ne.setInputCloud(pallet_boxFilter_cloudRGB);
+    ne.setKSearch(50);
+    ne.compute(*normals);
+
+    //4
+    pcl::SACSegmentationFromNormals<pcl::PointXYZRGB,pcl::Normal> seg;
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_NORMAL_PARALLEL_PLANE);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setDistanceThreshold(0.05);
+    seg.setInputCloud(pallet_boxFilter_cloudRGB);
+    seg.setInputNormals(normals);
+
+    //5
+    Eigen::Vector3f axis = Eigen::Vector3f(1.0,0,0);
+    seg.setAxis(axis);
+    seg.setEpsAngle(10.0f*(M_PI /180.0f));
+    seg.segment(*inliers, *coefficients);
+    if(inliers->indices.empty()){
+        PCL_ERROR("Could not estimate a plannar model for the given dataset.");
+        return -1;
+    }
+    //6
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr plane_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(pallet_boxFilter_cloudRGB);
+    extract.setIndices(inliers);
+    extract.setNegative(false);
+    extract.filter(*plane_cloud);
+
+    std::cout << "Plane cloud has "<<plane_cloud->size() << " points." << std::endl;
+
+    colorPointSet(plane_cloud, 0, 255, 0);
+    MergeCloud(plane_cloud,*totalRGB);
+
+
+
+
+
+
+
+
 
     //3,VoxelGridFilter 体素大小设置为5*5*5mm
     float leaf_x = 0.005f; float leaf_y = 0.005f; float leaf_z = 0.005f;
@@ -540,7 +592,7 @@ int palletDetectMethod_All()
                     {
                         rightcentroid = centroid;
                     }
-                    MergeCloud(boundPoints_filter_seg,*totalRGB);
+                    //MergeCloud(boundPoints_filter_seg,*totalRGB);
                     hole_count++;
                 }
 //                MergeCloud(boundPoints_filter_seg,*totalRGB);
@@ -548,7 +600,6 @@ int palletDetectMethod_All()
             }
         }
         j++;
-//        MergeCloud(boundPoints_filter_seg,*totalRGB);
 //        cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
 //        ########-----------boundPoints_filter_seg->size():1553
 //        ########-----------boundPoints_filter_seg->size():1532
@@ -702,7 +753,7 @@ void BlaserPointSafeZoneCallback(const sensor_msgs::PointCloud2ConstPtr &cloudPt
 
     if(basler.safezone_show == true)
     {
-        MergeCloud(filterBoxInside_cloudRGB,*totalRGB);
+        //MergeCloud(filterBoxInside_cloudRGB,*totalRGB);
         MergeCloud(safezonecloud,*totalRGB);
     }
     if(basler.pallet_roi_show == true)
@@ -746,7 +797,8 @@ void *thfrunc(void* arg)
 //    SetTemplateCloud_Zone(basler.palletzone,*palletzonecloud);//pallet zone
 
     ros::NodeHandle nh;
-    ros::Subscriber laser_sub = nh.subscribe("/basler/point_cloud", 1, BlaserPointSafeZoneCallback);   //pallet detect
+    //ros::Subscriber laser_sub = nh.subscribe("/basler/point_cloud", 1, BlaserPointSafeZoneCallback);   //pallet detect
+    ros::Subscriber laser_sub = nh.subscribe("/lx_camera_node/LxCamera_Cloud", 1, BlaserPointSafeZoneCallback);   //pallet detect
     ros::Publisher pallet_pub = nh.advertise<std_msgs::String>("SafeZone",2);
     ros::Publisher new_pallet_pub = nh.advertise<std_msgs::String>("MySafeZone",2);
     ros::Rate loop_rate(1);  //HZ
