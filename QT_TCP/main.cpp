@@ -55,7 +55,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr filterBoxInside_cloudRGB(new pcl::PointCl
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr filterCoreArea_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr filterDetectRoomTemp_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);                //声明cloud，用于保存输入点云
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_up_left_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_up_right_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_up_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_down_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);                //声明cloud，用于保存输入点云
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_boxFilter_reduce_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);                //声明cloud，用于保存输入点云
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_voxelFilter_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);                //声明cloud，用于保存输入点云
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr pallet_normalFilter_cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);                //声明cloud，用于保存输入点云
@@ -92,6 +95,14 @@ Eigen::Vector4f rightcentroid;                  // 质心
 Eigen::Vector4f middlecentroid;                   // 质心
 Eigen::Vector4f leftcentroid;                   // 质心
 
+Eigen::Vector4f right_up_centroid;                  // 质心
+Eigen::Vector4f middle_up_centroid;                   // 质心
+Eigen::Vector4f left_up_centroid;                   // 质心
+
+Eigen::Vector4f right_down_centroid;                  // 质心
+Eigen::Vector4f middle_down_centroid;                   // 质心
+Eigen::Vector4f left_down_centroid;                   // 质心
+
 float round(float a,int n)
 {
     return a>0?(((int)(a*pow(10,n)+0.5))*pow(10,-n)):(((int)(a*pow(10,n)-0.5))*pow(10,-n));
@@ -111,8 +122,8 @@ int safeZoneMethod()
 
     //3.Show message
     g_existpoint = filterBoxInside_cloudRGB->size();
-    cout << "safezone filterBoxOutside_cloudRGB:" <<filterBoxOutside_cloudRGB->size()<< endl;
-    cout << "safezone filterBoxInside_cloudRGB:" <<filterBoxInside_cloudRGB->size()<< endl;
+    //cout << "safezone filterBoxOutside_cloudRGB:" <<filterBoxOutside_cloudRGB->size()<< endl;
+    //cout << "safezone filterBoxInside_cloudRGB:" <<filterBoxInside_cloudRGB->size()<< endl;
 
     //4.Initialization
     basler.safezoneExist = false;
@@ -211,7 +222,7 @@ int palletDetectMethod_Tian()
     //2.Color Set
     colorPointSet(filterGroundBoxInside_cloudRGB, 255, 0, 0);
     //3.Show message
-    cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
+    //cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
     if(filterGroundBoxInside_cloudRGB->size() < basler.ground_pointCountForGroundExist)
     {
         groundExist = false;
@@ -224,10 +235,10 @@ int palletDetectMethod_Tian()
     }
 
 
-    //1.Zone Select   ===>   pallet_boxFilter_cloudRGB
+    //1.Zone Select   ===>   pallet_boxFilter_down_cloudRGB
     Eigen::Vector4f min_pt(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z - increaseCameraHeight,1.0);
     Eigen::Vector4f max_pt(basler.pallet_roi_max_x,basler.pallet_roi_max_y,basler.pallet_roi_max_z - increaseCameraHeight,1.0);
-    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_cloudRGB,min_pt,max_pt,false); // true: ouside   false:inside
+    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_down_cloudRGB,min_pt,max_pt,false); // true: ouside   false:inside
 
     //2. Small the zone for correct palne   ====>   pallet_boxFilter_reduce_cloudRGB
     Eigen::Vector4f min_pt2(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z+0.03 -increaseCameraHeight,1.0);
@@ -271,7 +282,7 @@ int palletDetectMethod_Tian()
 
     //7,Search the point around the plane
     float radiusSearch = 0.050; //0.02  0.035 0.050
-    PointNearThePlane(pallet_boxFilter_cloudRGB, *plane_coefficients, radiusSearch, *kdTreeCloudRGB);
+    PointNearThePlane(pallet_boxFilter_down_cloudRGB, *plane_coefficients, radiusSearch, *kdTreeCloudRGB);
 
     //8,VoxelGridFilter 体素大小设置为1*1*1mm
     leaf_x = 0.001f; leaf_y = 0.001f; leaf_z = 0.001f;
@@ -421,7 +432,7 @@ int palletDetectMethod_All()
     //2.Color Set
     colorPointSet(filterGroundBoxInside_cloudRGB, 255, 0, 0);
     //3.Show message
-    cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
+    //cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
     if(filterGroundBoxInside_cloudRGB->size() < basler.ground_pointCountForGroundExist)
     {
         groundExist = false;
@@ -433,138 +444,61 @@ int palletDetectMethod_All()
         increaseCameraHeight = basler.ground_increaseCameraHeight;
     }
 
+    //1.Zone Select up  ===>   pallet_boxFilter_up_cloudRGB
+    Eigen::Vector4f min_pt(basler.safezone.min_x,basler.safezone.min_y,basler.safezone.min_z - increaseCameraHeight,1.0);
+    Eigen::Vector4f max_pt(basler.safezone.max_x,-0.35,basler.safezone.max_z - increaseCameraHeight,1.0);
+    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_up_right_cloudRGB,min_pt,max_pt,false); // true: ouside   false:inside
+    MergeCloud(pallet_boxFilter_up_right_cloudRGB,*pallet_boxFilter_up_cloudRGB);
+    Eigen::Vector4f min_pt_1(basler.safezone.min_x,0.35,basler.safezone.min_z - increaseCameraHeight,1.0);
+    Eigen::Vector4f max_pt_1(basler.safezone.max_x,basler.safezone.max_y,basler.safezone.max_z - increaseCameraHeight,1.0);
+    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_up_left_cloudRGB,min_pt_1,max_pt_1,false); // true: ouside   false:inside
+    MergeCloud(pallet_boxFilter_up_left_cloudRGB,*pallet_boxFilter_up_cloudRGB);
 
-    //1.Zone Select   ===>   pallet_boxFilter_cloudRGB
-    Eigen::Vector4f min_pt(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z - increaseCameraHeight,1.0);
-    Eigen::Vector4f max_pt(basler.pallet_roi_max_x,basler.pallet_roi_max_y,basler.pallet_roi_max_z - increaseCameraHeight,1.0);
-    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_cloudRGB,min_pt,max_pt,false); // true: ouside   false:inside
-
-    //2. Small the zone for correct palne   ====>   pallet_boxFilter_reduce_cloudRGB
-    Eigen::Vector4f min_pt2(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z+0.03 -increaseCameraHeight,1.0);
-    Eigen::Vector4f max_pt2(basler.pallet_roi_max_x,basler.pallet_roi_max_y,basler.pallet_roi_max_z-0.03 -increaseCameraHeight,1.0);
-    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_reduce_cloudRGB,min_pt2,max_pt2,false); // true: ouside   false:inside
-
-
-    //3
-    pcl::NormalEstimation<pcl::PointXYZRGB,pcl::Normal> ne;
-    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
-    ne.setSearchMethod(tree);
-    ne.setInputCloud(pallet_boxFilter_cloudRGB);
-    ne.setKSearch(50);
-    ne.compute(*normals);
-
-    //4
-    pcl::SACSegmentationFromNormals<pcl::PointXYZRGB,pcl::Normal> seg;
-    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-    seg.setOptimizeCoefficients(true);
-    seg.setModelType(pcl::SACMODEL_NORMAL_PARALLEL_PLANE);
-    seg.setMethodType(pcl::SAC_RANSAC);
-    seg.setDistanceThreshold(0.05);
-    seg.setInputCloud(pallet_boxFilter_cloudRGB);
-    seg.setInputNormals(normals);
-
-    //5
-    Eigen::Vector3f axis = Eigen::Vector3f(1.0,0,0);
-    seg.setAxis(axis);
-    seg.setEpsAngle(10.0f*(M_PI /180.0f));
-    seg.segment(*inliers, *coefficients);
-    if(inliers->indices.empty()){
-        PCL_ERROR("Could not estimate a plannar model for the given dataset.");
-        return -1;
-    }
-    //6
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr plane_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-    extract.setInputCloud(pallet_boxFilter_cloudRGB);
-    extract.setIndices(inliers);
-    extract.setNegative(false);
-    extract.filter(*plane_cloud);
-
-    std::cout << "Plane cloud has "<<plane_cloud->size() << " points." << std::endl;
-
-    colorPointSet(plane_cloud, 0, 255, 0);
-    MergeCloud(plane_cloud,*totalRGB);
-
-
-
-
-
-
-
-
-
-    //3,VoxelGridFilter 体素大小设置为5*5*5mm
+    //2,VoxelGridFilter 体素大小设置为5*5*5mm
     float leaf_x = 0.005f; float leaf_y = 0.005f; float leaf_z = 0.005f;
-    VoxelGridFilter(pallet_boxFilter_reduce_cloudRGB,*pallet_voxelFilter_cloudRGB,leaf_x,leaf_y,leaf_z);  //16907  =>  8997
+    VoxelGridFilter(pallet_boxFilter_up_cloudRGB,*pallet_voxelFilter_cloudRGB,leaf_x,leaf_y,leaf_z);  //16907  =>  8997
     //3,Return FailCode
-    if(pallet_voxelFilter_cloudRGB->size()<800)
+    if(pallet_voxelFilter_cloudRGB->size()<1000)
     {
         return failCodeAndReset(PDS_NOT_ENOUGH_PIXELS_ON_THE_PLANE,leftcentroid,middlecentroid,rightcentroid);
     }
-
-    //4.法向量滤波
+    //3.法向量滤波
     pcl::copyPointCloud(*pallet_voxelFilter_cloudRGB,*pallet_normalFilter_cloudRGB);
     int search_k = 30;
     NormalEstimation(pallet_normalFilter_cloudRGB,*cloud_normals,search_k);
-
-    //5.Filt the normal point
     NormalsFilter(cloud_normals,*pallet_normalFilter_cloudRGB);
-    PassFilter(pallet_normalFilter_cloudRGB, *pallet_normalFilter_cloudRGB, 1, 3, "x");     //30000  =>  5000
-    //5,Return FailCode
-    if(pallet_normalFilter_cloudRGB->size() < 100)
-    {
-        return failCodeAndReset(PDS_NOT_ENOUGH_PIXELS_ON_THE_Normal_PLANE,leftcentroid,middlecentroid,rightcentroid);
-    }
+    PassFilter(pallet_normalFilter_cloudRGB, *pallet_normalFilter_cloudRGB, 0.5, 1.5, "x");     //30000  =>  5000
 
-    //6,Calculate the plane
-    pcl::PointIndices::Ptr plane_inliers(new pcl::PointIndices);
-    pcl::ModelCoefficients::Ptr plane_coefficients(new pcl::ModelCoefficients);
-    PlaneSegment(pallet_normalFilter_cloudRGB,*plane_inliers, *plane_coefficients);
-    g_roll =  plane_coefficients->values[0];   //X
-    g_pitch = plane_coefficients->values[1];  //Y
-    g_yaw = plane_coefficients->values[2];    //Z
-    std::cerr << "A:" << plane_coefficients->values[0] << std::endl;
-    std::cerr << "B:" << plane_coefficients->values[1] << std::endl;
-    std::cerr << "C:" << plane_coefficients->values[2] << std::endl;
-    std::cerr << "D:" << plane_coefficients->values[3] << std::endl;
+    //4
+    pcl::PointIndices::Ptr inliers_up(new pcl::PointIndices);
+    pcl::ModelCoefficients::Ptr coefficients_up(new pcl::ModelCoefficients);
+    PlaneSegment(pallet_normalFilter_cloudRGB,*inliers_up, *coefficients_up);
+    g_roll =  coefficients_up->values[0];   //X
+    g_pitch = coefficients_up->values[1];  //Y
+    g_yaw = coefficients_up->values[2];    //Z
+//    std::cerr << "A:" << coefficients_up->values[0] << std::endl;
+//    std::cerr << "B:" << coefficients_up->values[1] << std::endl;
+//    std::cerr << "C:" << coefficients_up->values[2] << std::endl;
+//    std::cerr << "D:" << coefficients_up->values[3] << std::endl;
+    //6,Search the point around the plane
+    float radiusSearch = 0.020; //0.02  0.035 0.050
+    PointNearThePlane(pallet_boxFilter_up_cloudRGB, *coefficients_up, radiusSearch, *kdTreeCloudRGB);
+    colorPointSet(kdTreeCloudRGB, 0, 0, 255);
+    MergeCloud(kdTreeCloudRGB,*totalRGB);
 
-    //7,Search the point around the plane
-    float radiusSearch = 0.050; //0.02  0.035 0.050
-    PointNearThePlane(pallet_boxFilter_cloudRGB, *plane_coefficients, radiusSearch, *kdTreeCloudRGB);
-
-    //8,VoxelGridFilter 体素大小设置为1*1*1mm
-    leaf_x = 0.001f; leaf_y = 0.001f; leaf_z = 0.001f;
-    VoxelGridFilter(kdTreeCloudRGB,*kdTreeVoxelCloudRGB,leaf_x,leaf_y,leaf_z);
-//    MergeCloud(kdTreeVoxelCloudRGB,*totalRGB);
-
-
-    //9.fill the point from line scan
-    pcl::PointXYZRGB basler_pallet_roi_minPt,basler_pallet_roi_maxPt;
-    basler_pallet_roi_minPt.x = basler.pallet_roi_min_x;
-    basler_pallet_roi_maxPt.x = basler.pallet_roi_max_x;
-    basler_pallet_roi_minPt.y = basler.pallet_roi_min_y;
-    basler_pallet_roi_maxPt.y = basler.pallet_roi_max_y;
-    basler_pallet_roi_minPt.z = basler.pallet_roi_min_z - increaseCameraHeight;
-    basler_pallet_roi_maxPt.z = basler.pallet_roi_max_z - increaseCameraHeight;
-    fillPoint_lineScan(kdTreeVoxelCloudRGB,plane_coefficients,basler_pallet_roi_minPt,basler_pallet_roi_maxPt,*fill_point_cloudRGB);
-//    cout << "########-----------fill_point_cloudRGB->size():" <<fill_point_cloudRGB->size()<< endl;
-//    MergeCloud(fill_point_cloudRGB,*totalRGB);
-
-    //10,segmentation
+    //7,segmentation
     std::vector<pcl::PointIndices> boundPoints_filter_seg_indices;
-    EuclideanClusterExtraction(fill_point_cloudRGB,0.01,2000,50,boundPoints_filter_seg_indices);
+    EuclideanClusterExtraction(kdTreeCloudRGB,0.01,6000,2000,boundPoints_filter_seg_indices); //4000
 
     int j = 0;
-    int hole_count = 0;
+    int leg_up_count = 0;
 
     for(std::vector<pcl::PointIndices>::const_iterator it = boundPoints_filter_seg_indices.begin();it!=boundPoints_filter_seg_indices.end();it++)
     {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr boundPoints_filter_seg(new pcl::PointCloud<pcl::PointXYZRGB>);
         for(std::vector<int>::const_iterator pit=it->indices.begin();pit!=it->indices.end();pit++)
         {
-            boundPoints_filter_seg->points.push_back(fill_point_cloudRGB->points[*pit]);
+            boundPoints_filter_seg->points.push_back(kdTreeCloudRGB->points[*pit]);
         }
         boundPoints_filter_seg->width = boundPoints_filter_seg->points.size();
         boundPoints_filter_seg->height = 1;
@@ -573,31 +507,26 @@ int palletDetectMethod_All()
 
         pcl::PointXYZRGB minPt,maxPt;
         pcl::getMinMax3D(*boundPoints_filter_seg,minPt,maxPt);
-        float y_delta = maxPt.y-minPt.y;
-        float z_delta = maxPt.z-minPt.z;
-        if((y_delta<0.6) && (y_delta>0.2) && (z_delta>0.04) &&(z_delta<0.15)
-                &&(maxPt.y<(basler_pallet_roi_maxPt.y-0.05))
-                &&(minPt.y>(basler_pallet_roi_minPt.y+0.05)))
+        float y_delta = maxPt.y-minPt.y;  //0.15
+        float z_delta = maxPt.z-minPt.z;  //0.05
+        if((y_delta<0.3) && (y_delta>0.1) && (z_delta>0.02) &&(z_delta<0.15))
         {
             pcl::compute3DCentroid(*boundPoints_filter_seg, centroid);    // 齐次坐标，（c0,c1,c2,1）
-            if(abs(centroid.y())<0.6)
-            {
-                if(boundPoints_filter_seg->size()>400)
+                if(boundPoints_filter_seg->size()>1000)
                 {
                     if(centroid.y()>0)
                     {
-                        leftcentroid = centroid;
+                        left_up_centroid = centroid;
                     }
                     if(centroid.y()<0)
                     {
-                        rightcentroid = centroid;
+                        right_up_centroid = centroid;
                     }
                     //MergeCloud(boundPoints_filter_seg,*totalRGB);
-                    hole_count++;
+                    leg_up_count++;
                 }
 //                MergeCloud(boundPoints_filter_seg,*totalRGB);
-                 cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
-            }
+                 //cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
         }
         j++;
 //        cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
@@ -610,33 +539,182 @@ int palletDetectMethod_All()
         }
     }
 
-    if(plane_coefficients != nullptr)
+//    cout << "########--leg_up_count:" <<leg_up_count<< endl;
+//    std::cerr << "左_up_质心结果:" << left_up_centroid.x() << "  " << left_up_centroid.y() << "  " << left_up_centroid.z()<< std::endl;
+//    std::cerr << "右_up_质心结果:" << right_up_centroid.x() << "  " << right_up_centroid.y()  << "  " << right_up_centroid.z() << std::endl;
+
+    //1. 1.Zone Select   ===>   pallet_boxFilter_up_cloudRGB
+    Eigen::Vector4f min_pt2(basler.pallet_roi_min_x,basler.pallet_roi_min_y,basler.pallet_roi_min_z -increaseCameraHeight,1.0);
+    Eigen::Vector4f max_pt2(basler.pallet_roi_max_x,basler.pallet_roi_max_y,basler.pallet_roi_max_z -increaseCameraHeight,1.0);
+    BoxFilter(rotation_cloudRGB,*pallet_boxFilter_down_cloudRGB,min_pt2,max_pt2,false); // true: ouside   false:inside
+//    //2
+//    pcl::NormalEstimation<pcl::PointXYZRGB,pcl::Normal> ne_down;
+//    pcl::PointCloud<pcl::Normal>::Ptr normals_down(new pcl::PointCloud<pcl::Normal>);
+//    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree_down(new pcl::search::KdTree<pcl::PointXYZRGB>());
+//    ne_down.setSearchMethod(tree_down);
+//    ne_down.setInputCloud(pallet_boxFilter_down_cloudRGB);
+//    ne_down.setKSearch(50);
+//    ne_down.compute(*normals_down);
+//    //3
+//    pcl::SACSegmentationFromNormals<pcl::PointXYZRGB,pcl::Normal> seg_down;
+//    pcl::PointIndices::Ptr inliers_down(new pcl::PointIndices);
+//    pcl::ModelCoefficients::Ptr coefficients_down(new pcl::ModelCoefficients);
+//    seg_down.setOptimizeCoefficients(true);
+//    seg_down.setModelType(pcl::SACMODEL_NORMAL_PARALLEL_PLANE);
+//    seg_down.setMethodType(pcl::SAC_RANSAC);
+//    seg_down.setDistanceThreshold(0.05);
+//    seg_down.setInputCloud(pallet_boxFilter_down_cloudRGB);
+//    seg_down.setInputNormals(normals_down);
+//    //4
+//    Eigen::Vector3f axis_down = Eigen::Vector3f(1.0,0,0);
+//    seg_down.setAxis(axis_down);
+//    seg_down.setEpsAngle(10.0f*(M_PI /180.0f));
+//    seg_down.segment(*inliers_down, *coefficients_down);
+//    if(inliers_down->indices.empty()){
+//        PCL_ERROR("Could not estimate a plannar model for the given dataset.");
+//        return -1;
+//    }
+//    //5
+//    pcl::PointCloud<pcl::PointXYZRGB>::Ptr plane_cloud_down(new pcl::PointCloud<pcl::PointXYZRGB>);
+//    pcl::ExtractIndices<pcl::PointXYZRGB> extract_down;
+//    extract_down.setInputCloud(pallet_boxFilter_down_cloudRGB);
+//    extract_down.setIndices(inliers_down);
+//    extract_down.setNegative(false);
+//    extract_down.filter(*plane_cloud_down);
+//    std::cout << "Plane cloud down has "<<plane_cloud_down->size() << " points." << std::endl;
+//    colorPointSet(plane_cloud_down, 0, 255, 0);
+//    MergeCloud(plane_cloud_down,*totalRGB);
+
+    //2,VoxelGridFilter 体素大小设置为5*5*5mm
+    leaf_x = 0.005f; leaf_y = 0.005f; leaf_z = 0.005f;
+    VoxelGridFilter(pallet_boxFilter_down_cloudRGB,*pallet_voxelFilter_cloudRGB,leaf_x,leaf_y,leaf_z);  //16907  =>  8997
+    //3,Return FailCode
+    if(pallet_voxelFilter_cloudRGB->size()<1000)
     {
-        plane_coefficients = nullptr;
+        return failCodeAndReset(PDS_NOT_ENOUGH_PIXELS_ON_THE_PLANE,leftcentroid,middlecentroid,rightcentroid);
     }
-    if(plane_inliers != nullptr)
+    //3.法向量滤波
+    pcl::copyPointCloud(*pallet_voxelFilter_cloudRGB,*pallet_normalFilter_cloudRGB);
+    search_k = 30;
+    NormalEstimation(pallet_normalFilter_cloudRGB,*cloud_normals,search_k);
+    NormalsFilter(cloud_normals,*pallet_normalFilter_cloudRGB);
+    PassFilter(pallet_normalFilter_cloudRGB, *pallet_normalFilter_cloudRGB, 0.5, 1.5, "x");     //30000  =>  5000
+
+    //4
+    pcl::PointIndices::Ptr inliers_down(new pcl::PointIndices);
+    pcl::ModelCoefficients::Ptr coefficients_down(new pcl::ModelCoefficients);
+    PlaneSegment(pallet_normalFilter_cloudRGB,*inliers_down, *coefficients_down);
+    g_roll =  coefficients_down->values[0];   //X
+    g_pitch = coefficients_down->values[1];  //Y
+    g_yaw = coefficients_down->values[2];    //Z
+//    std::cerr << "A:" << coefficients_down->values[0] << std::endl;
+//    std::cerr << "B:" << coefficients_down->values[1] << std::endl;
+//    std::cerr << "C:" << coefficients_down->values[2] << std::endl;
+//    std::cerr << "D:" << coefficients_down->values[3] << std::endl;
+    //6,Search the point around the plane
+    radiusSearch = 0.020; //0.02  0.035 0.050
+    PointNearThePlane(pallet_boxFilter_down_cloudRGB, *coefficients_down, radiusSearch, *kdTreeCloudRGB);
+    colorPointSet(kdTreeCloudRGB, 0, 255, 0);
+    MergeCloud(kdTreeCloudRGB,*totalRGB);
+
+    //7,segmentation
+    EuclideanClusterExtraction(kdTreeCloudRGB,0.01,6000,2000,boundPoints_filter_seg_indices); //4000
+    int leg_down_count = 0;
+
+    for(std::vector<pcl::PointIndices>::const_iterator it = boundPoints_filter_seg_indices.begin();it!=boundPoints_filter_seg_indices.end();it++)
     {
-        plane_inliers = nullptr;
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr boundPoints_filter_seg(new pcl::PointCloud<pcl::PointXYZRGB>);
+        for(std::vector<int>::const_iterator pit=it->indices.begin();pit!=it->indices.end();pit++)
+        {
+            boundPoints_filter_seg->points.push_back(kdTreeCloudRGB->points[*pit]);
+        }
+        boundPoints_filter_seg->width = boundPoints_filter_seg->points.size();
+        boundPoints_filter_seg->height = 1;
+        boundPoints_filter_seg->is_dense =true;
+
+
+        pcl::PointXYZRGB minPt,maxPt;
+        pcl::getMinMax3D(*boundPoints_filter_seg,minPt,maxPt);
+        float y_delta = maxPt.y-minPt.y;  //0.09
+        float z_delta = maxPt.z-minPt.z;  //0.1
+        if((y_delta<0.2) && (y_delta>0.06) && (z_delta>0.02) &&(z_delta<0.15))
+        {
+            pcl::compute3DCentroid(*boundPoints_filter_seg, centroid);    // 齐次坐标，（c0,c1,c2,1）
+                if(boundPoints_filter_seg->size()>1000)
+                {
+                    if(centroid.y()>0)
+                    {
+                        left_down_centroid = centroid;
+                    }
+                    if(centroid.y()<0)
+                    {
+                        right_down_centroid = centroid;
+                    }
+                    //MergeCloud(boundPoints_filter_seg,*totalRGB);
+                    leg_down_count++;
+                }
+//                MergeCloud(boundPoints_filter_seg,*totalRGB);
+                 //cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
+        }
+        j++;
+//        cout << "########-----------boundPoints_filter_seg->size():" <<boundPoints_filter_seg->size() << "  y_delta:"<<y_delta << "  z_delta:"<< z_delta << endl;
+//        ########-----------boundPoints_filter_seg->size():1553
+//        ########-----------boundPoints_filter_seg->size():1532
+//        ########-----------boundPoints_filter_seg->size():1441
+        if(boundPoints_filter_seg != nullptr)
+        {
+            boundPoints_filter_seg = nullptr;
+        }
     }
-    cout << "########-----------j:" <<j<< endl;
-    cout << "########--hole_count:" <<hole_count<< endl;
-    std::cerr << "左质心结果:" << leftcentroid.x() << "  " << leftcentroid.y() << "  " << leftcentroid.z()<< std::endl;
-    std::cerr << "右质心结果:" << rightcentroid.x() << "  " << rightcentroid.y()  << "  " << rightcentroid.z() << std::endl;
+//    cout << "########--leg_down_count:" <<leg_down_count<< endl;
+//    std::cerr << "左_down_质心结果:" << left_down_centroid.x() << "  " << left_down_centroid.y() << "  " << left_down_centroid.z()<< std::endl;
+//    std::cerr << "右_down_质心结果:" << right_down_centroid.x() << "  " << right_down_centroid.y()  << "  " << right_down_centroid.z() << std::endl;
+
+    if(coefficients_up != nullptr)
+    {
+        coefficients_up = nullptr;
+    }
+    if(inliers_up != nullptr)
+    {
+        inliers_up = nullptr;
+    }
+
+    if(coefficients_down != nullptr)
+    {
+        coefficients_down = nullptr;
+    }
+    if(inliers_down != nullptr)
+    {
+        inliers_down = nullptr;
+    }
+
+    float center_x = (left_up_centroid.x()+right_up_centroid.x())/2.0;
+    float center_y = (left_up_centroid.y()+right_up_centroid.y())/2.0;
+    float center_z = (left_up_centroid.z()+right_up_centroid.z())/2.0;
+    middle_up_centroid = Eigen::Vector4f(center_x,center_y,center_z,1);
+
+    center_x = (left_down_centroid.x()+right_down_centroid.x())/2.0;
+    center_y = (left_down_centroid.y()+right_down_centroid.y())/2.0;
+    center_z = (left_down_centroid.z()+right_down_centroid.z())/2.0;
+    middle_down_centroid = Eigen::Vector4f(center_x,center_y,center_z,1);
+
+    center_x = middle_up_centroid.x()-middle_down_centroid.x();
+    center_y = middle_up_centroid.y()-middle_down_centroid.y();
+    center_z = middle_up_centroid.z()-middle_down_centroid.z();
+    middlecentroid = Eigen::Vector4f(center_x,center_y,center_z,1);
+
+    std::cerr << "质心结果:" << middlecentroid.x() << "  " << middlecentroid.y() << "  " << middlecentroid.z()<< std::endl;
+
 
     double time4 = stopWatch.getTime();
-    std::cerr<< "elapsed_time:" << time4 << std::endl;
-
-    float center_x = (leftcentroid.x()+rightcentroid.x())/2.0;
-    float center_y = (leftcentroid.y()+rightcentroid.y())/2.0;
-    float center_z = (leftcentroid.z()+rightcentroid.z())/2.0;
-    middlecentroid = Eigen::Vector4f(center_x,center_y,center_z,1);
-    if((rightcentroid.x()>0)&&(leftcentroid.x()>0)&&abs(center_y)<0.3&& (hole_count==2))
+//    std::cerr<< "elapsed_time:" << time4 << std::endl;
+    if(abs(center_y)<0.3 && (leg_up_count==2) && (leg_down_count==2))
     {
-        return failCodeAndReset(PDS_NO_ERRORS,leftcentroid,middlecentroid,rightcentroid);
+        return failCodeAndReset(PDS_NO_ERRORS,middle_up_centroid,middlecentroid,middle_down_centroid);
     }
     else
     {
-        return failCodeAndReset(PDS_COMPOSED_CENTER_STRINGER_RATIO_ERROR,leftcentroid,middlecentroid,rightcentroid);
+        return failCodeAndReset(PDS_COMPOSED_CENTER_STRINGER_RATIO_ERROR,middle_up_centroid,middlecentroid,middle_down_centroid);
     }
 }
 
@@ -648,6 +726,8 @@ void BlaserPointSafeZoneCallback(const sensor_msgs::PointCloud2ConstPtr &cloudPt
     pcl::fromROSMsg(*cloudPtr, *origin);
     //viewer->removeAllPointClouds();
     totalRGB->clear();
+    pallet_boxFilter_up_cloudRGB->clear();
+    pallet_boxFilter_down_cloudRGB->clear();
 
     //deal with the cloud point
     pcl::copyPointCloud(*origin,*firstcloud);         //original
@@ -687,7 +767,7 @@ void BlaserPointSafeZoneCallback(const sensor_msgs::PointCloud2ConstPtr &cloudPt
     //2.Color Set
     colorPointSet(filterGroundBoxInside_cloudRGB, 255, 0, 0);
     //3.Show message
-    cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
+    //cout << "filterGroundBoxInside_cloudRGB:" <<filterGroundBoxInside_cloudRGB->size()<< endl;
     if(filterGroundBoxInside_cloudRGB->size() < basler.ground_pointCountForGroundExist)
     {
         groundExist = false;
