@@ -20,6 +20,10 @@ extern float g_confidence;
 extern float g_roll;
 extern float g_pitch;
 extern float g_yaw;
+extern float g_up_angle;
+extern float g_down_angle;
+extern float g_delta_angle;
+
 
 extern std::size_t g_existpoint;
 extern float g_safezone_min_x;

@@ -157,6 +157,9 @@ float g_confidence = 0;
 float g_roll = 0;
 float g_pitch = 0;
 float g_yaw = 0;
+float g_up_angle;
+float g_down_angle;
+float g_delta_angle;
 
 std::size_t g_existpoint = 0;
 float g_safezone_min_x = 0;
@@ -240,19 +243,16 @@ void ServerWidget::pds_get_pallet_command(QByteArray array)
             pds_point centerPoint = g_certenPoint;
             pds_point leftPoint = g_leftPoint;
             pds_point rightPoint = g_rightPoint;
-            pds_posture posture = {g_roll,g_pitch,g_yaw};
+            pds_posture posture = {g_up_angle,g_down_angle,g_delta_angle};
 
             QPoint startPoint(leftPoint.y,leftPoint.x);
             QPoint endPoint(rightPoint.y,rightPoint.x);
-            double startPoint_X = leftPoint.y;
-            double startPoint_Y = leftPoint.x;
-            double endPoint_X = rightPoint.y;
-            double endPoint_Y = rightPoint.x;
-            double angle = -(TwoPointToAngle(startPoint_X, startPoint_Y, endPoint_X, endPoint_Y));
-            ui->textEditRead->append("centerPoint_x: "+QString::number(centerPoint.x) +
-                                     "   centerPoint_y :"+QString::number(centerPoint.y) +
-                                     "   centerPoint_z :"+QString::number(centerPoint.z) +
-                                     "   angle: " + QString::number(angle));
+            //double startPoint_X = leftPoint.y;
+            //double startPoint_Y = leftPoint.x;
+            //double endPoint_X = rightPoint.y;
+            //double endPoint_Y = rightPoint.x;
+            //double angle = -(TwoPointToAngle(startPoint_X, startPoint_Y, endPoint_X, endPoint_Y));
+
             pdsPalletCoordinateClass palletCoordinate(
                                      elapsedTime,
                                      confidence,
@@ -260,6 +260,10 @@ void ServerWidget::pds_get_pallet_command(QByteArray array)
                                      leftPoint,
                                      rightPoint,
                                      posture);
+            ui->textEditRead->append("centerPoint_x: "+QString::number(centerPoint.x) +
+                                     "   centerPoint_y :"+QString::number(centerPoint.y) +
+                                     "   centerPoint_z :"+QString::number(centerPoint.z) +
+                                     "   angle: " + QString::number(posture.yaw));
 
             pdsPalletResponseClass palletResponse;
             palletResponse.response_success(palletCoordinate);

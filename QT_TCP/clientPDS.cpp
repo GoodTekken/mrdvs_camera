@@ -280,18 +280,18 @@ void ClientPDS::pds_get_pallet_response_command(QByteArray array)
         " len:"+QString::number(palletResponse.palletResponseSuccessStruct.len)+"\r\n"+
         " elapsedTime:"+QString::number(palletResponse.palletResponseSuccessStruct.elapsedTime)+"\r\n"+
         " confidence:"+QString::number(palletResponse.palletResponseSuccessStruct.confidence)+"\r\n"+
-        " palletX:"+QString::number(palletResponse.palletResponseSuccessStruct.palletX)+"\r\n"+
-        " palletY:"+QString::number(palletResponse.palletResponseSuccessStruct.palletY)+"\r\n"+
-        " palletZ:"+QString::number(palletResponse.palletResponseSuccessStruct.palletZ)+"\r\n"+
-        " leftPocketX:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketX)+"\r\n"+
-        " leftPocketY:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketY)+"\r\n"+
-        " leftPocketZ:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketZ)+"\r\n"+
-        " rightPocketX:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketX)+"\r\n"+
-        " rightPocketY:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketY)+"\r\n"+
-        " rightPocketZ:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketZ)+"\r\n"+
-        " roll:"+QString::number(palletResponse.palletResponseSuccessStruct.roll)+"\r\n"+
-        " pitch:"+QString::number(palletResponse.palletResponseSuccessStruct.pitch)+"\r\n"+
-        " yaw:"+QString::number(palletResponse.palletResponseSuccessStruct.yaw)+"\r\n"
+        " dX:"+QString::number(palletResponse.palletResponseSuccessStruct.palletX)+"\r\n"+
+        " dY:"+QString::number(palletResponse.palletResponseSuccessStruct.palletY)+"\r\n"+
+        " dZ:"+QString::number(palletResponse.palletResponseSuccessStruct.palletZ)+"\r\n"+
+        " up_X:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketX)+"\r\n"+
+        " up_Y:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketY)+"\r\n"+
+        " up_Z:"+QString::number(palletResponse.palletResponseSuccessStruct.leftPocketZ)+"\r\n"+
+        " downX:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketX)+"\r\n"+
+        " downY:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketY)+"\r\n"+
+        " downZ:"+QString::number(palletResponse.palletResponseSuccessStruct.rightPocketZ)+"\r\n"+
+        " up_angle:"+QString::number(palletResponse.palletResponseSuccessStruct.roll)+"\r\n"+
+        " down_angle:"+QString::number(palletResponse.palletResponseSuccessStruct.pitch)+"\r\n"+
+        " delta_angle:"+QString::number(palletResponse.palletResponseSuccessStruct.yaw)+"\r\n"
                 ;
         ui->textEditRead->append(str);
 

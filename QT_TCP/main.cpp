@@ -476,6 +476,7 @@ int palletDetectMethod_All()
     g_roll =  coefficients_up->values[0];   //X
     g_pitch = coefficients_up->values[1];  //Y
     g_yaw = coefficients_up->values[2];    //Z
+
 //    std::cerr << "A:" << coefficients_up->values[0] << std::endl;
 //    std::cerr << "B:" << coefficients_up->values[1] << std::endl;
 //    std::cerr << "C:" << coefficients_up->values[2] << std::endl;
@@ -703,7 +704,11 @@ int palletDetectMethod_All()
     center_z = middle_up_centroid.z()-middle_down_centroid.z();
     middlecentroid = Eigen::Vector4f(center_x,center_y,center_z,1);
 
-    std::cerr << "质心结果:" << middlecentroid.x() << "  " << middlecentroid.y() << "  " << middlecentroid.z()<< std::endl;
+    g_up_angle = -(TwoPointToAngle(left_up_centroid.y(), left_up_centroid.x(), right_up_centroid.y(), right_up_centroid.x()));
+    g_down_angle = -(TwoPointToAngle(left_down_centroid.y(), left_down_centroid.x(), right_down_centroid.y(), right_down_centroid.x()));
+    g_delta_angle = g_up_angle - g_down_angle;
+
+    std::cerr << "质心结果: dx:" << middlecentroid.x() << "  dy:" << middlecentroid.y() << "  dz:" << middlecentroid.z() <<" g_delta_angle:"<<g_delta_angle<< std::endl;
 
 
     double time4 = stopWatch.getTime();
