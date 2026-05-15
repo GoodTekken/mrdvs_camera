@@ -444,6 +444,8 @@ int palletDetectMethod_All()
         increaseCameraHeight = basler.ground_increaseCameraHeight;
     }
 
+    MergeCloud(rotation_cloudRGB,*totalRGB);
+
     //1.Zone Select up  ===>   pallet_boxFilter_up_cloudRGB
     Eigen::Vector4f min_pt(basler.safezone.min_x,basler.safezone.min_y,basler.safezone.min_z - increaseCameraHeight,1.0);
     Eigen::Vector4f max_pt(basler.safezone.max_x,-0.35,basler.safezone.max_z - increaseCameraHeight,1.0);
